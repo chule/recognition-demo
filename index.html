@@ -66,7 +66,7 @@
             path = draw.path(`M${e.pageX},${e.pageY}`);
             path
               .fill("none")
-              .stroke({ color: "#000", width: 1, linecap: "round" });
+              .stroke({ color: "#000", width: 15, linecap: "round" });
           });
 
         document
@@ -76,6 +76,7 @@
               var newPath =
                 path.attr("d") +
                 ` Q${e.pageX},${e.pageY} ${e.pageX},${e.pageY}`;
+
               path.plot(newPath);
             }
           });
@@ -83,6 +84,8 @@
         document
           .getElementById("drawing")
           .addEventListener("mouseup", function () {
+       
+
             isDrawing = false;
             var fadingPath = path;
 
