@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SVG Line</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.1/svg.min.js"></script>
+    <script>
+        window.onload = function() {
+            var draw = SVG().addTo('#drawing').size('100%', '100%');
+            var path;
+            var isDrawing = false;
+
+            document.getElementById('drawing').addEventListener('mousedown', function(e) {
+                isDrawing = true;
+                path = draw.path(`M${e.pageX},${e.pageY}`);
+                path.fill('none').stroke({ color: '#000', width: 1, linecap: 'round' });
+            });
+
+            document.getElementById('drawing').addEventListener('mousemove', function(e) {
+                if (isDrawing) {
+                    var newPath = path.attr('d') + ` Q${e.pageX},${e.pageY} ${e.pageX},${e.pageY}`;
+                    path.plot(newPath);
+                }
+            });
+
+            document.getElementById('drawing').addEventListener('mouseup', function() {
+                isDrawing = false;
+                var fadingPath = path;
+                setTimeout(function() {
+                    fadingPath.animate(300).opacity(0).after(function() {
+                        fadingPath.remove();
+                        console.log("Log detected shape here");
+                    });
+                }, 300);
+            });
+        };  
+    </script>
+</head>
+<body>
+    <div id="drawing" style="height: 100vh;"></div>
+</body>
+</html>

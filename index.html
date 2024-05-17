@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ABCD recognition</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.1/svg.min.js"></script>
+    <script src="https://unpkg.com/ml5@0.4.3/dist/ml5.min.js"></script>
+    <div id="png-container" style="display: none"></div>
+    <script>
+      window.onload = function () {
+        // const classifier = ml5.imageClassifier("DoodleNet", modelReady);
+        const classifier = ml5.imageClassifier(
+          "./model/model.json",
+          modelReady
+        );
+
+        function modelReady() {
+          console.log("Model Ready!");
+        }
+
+        var draw = SVG().addTo("#drawing").size("100%", "100%");
+
+        var rect = draw.rect("100%", "100%").attr({ fill: "#ffffff" });
+
+        var path;
+        var isDrawing = false;
+
+        const debounce = (func, delay = 500) => {
+          let debounceTimer;
+          return function () {
+            const context = this;
+            const args = arguments;
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => func.apply(context, args), delay);
+          };
+        };
+
+        var renderSVG = function (svgEl, renderedCallback, jpgQuality, bounds) {
+          // WARNING! Inline <image> tags must have a base64-encoded image as their source. Linked image files will not work.
+          // transform svg into base64 image
+          var s = new XMLSerializer().serializeToString(svgEl);
+          var uri = "data:image/svg+xml;base64," + window.btoa(s);
+
+          // load svg image into canvas
+          var image = new Image();
+          image.onload = function () {
+            var canvas = document.createElement("canvas");
+            canvas.width = bounds.width;
+            canvas.height = bounds.height;
+            var context = canvas.getContext("2d");
+            context.drawImage(image, 0, 0);
+            if (jpgQuality > 0.2) {
+              var jpg = canvas.toDataURL("image/jpeg", jpgQuality);
+              renderedCallback(jpg);
+            } else {
+              var png = canvas.toDataURL("image/png");
+              renderedCallback(png);
+            }
+          };
+          image.src = uri;
+        };
+
+        document
+          .getElementById("drawing")
+          .addEventListener("mousedown", function (e) {
+            isDrawing = true;
+            path = draw.path(`M${e.pageX},${e.pageY}`);
+            path
+              .fill("none")
+              .stroke({ color: "#000", width: 1, linecap: "round" });
+          });
+
+        document
+          .getElementById("drawing")
+          .addEventListener("mousemove", function (e) {
+            if (isDrawing) {
+              var newPath =
+                path.attr("d") +
+                ` Q${e.pageX},${e.pageY} ${e.pageX},${e.pageY}`;
+              path.plot(newPath);
+            }
+          });
+
+        document
+          .getElementById("drawing")
+          .addEventListener("mouseup", function () {
+            isDrawing = false;
+            var fadingPath = path;
+
+            //   console.log(draw);
+
+            const bounds = document
+              .getElementsByTagName("svg")[0]
+              .getBoundingClientRect();
+
+            renderSVG(
+              document.getElementsByTagName("svg")[0],
+              callback,
+              0.5,
+              bounds
+            );
+
+            function callback(image) {
+              document.querySelector("#png-container").innerHTML =
+                '<img id="image" src="' + image + '"/>';
+
+              debounce(function () {
+                classifier.classify(
+                  document.getElementById("image"),
+                  5,
+                  (err, results) => {
+                    console.log(results[0].label);
+                  }
+                );
+
+                fadingPath
+                  .animate(300)
+                  .opacity(0)
+                  .after(function () {
+                    fadingPath.remove();
+                  });
+              }, 500)();
+            }
+          });
+      };
+    </script>
+  </head>
+  <body style="margin: 0">
+    <div id="drawing" style="height: 100vh"></div>
+  </body>
+</html>
