@@ -4,6 +4,7 @@
     <title>ABCD recognition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.1/svg.min.js"></script>
     <script src="https://unpkg.com/ml5@0.4.3/dist/ml5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <div id="png-container" style="display: none"></div>
     <script>
       window.onload = function () {
@@ -24,8 +25,9 @@
         var path;
         var isDrawing = false;
 
+        let debounceTimer;
+
         const debounce = (func, delay = 500) => {
-          let debounceTimer;
           return function () {
             const context = this;
             const args = arguments;
@@ -62,6 +64,8 @@
         document
           .getElementById("drawing")
           .addEventListener("mousedown", function (e) {
+            clearTimeout(debounceTimer);
+
             isDrawing = true;
             path = draw.path(`M${e.pageX},${e.pageY}`);
             path
@@ -84,8 +88,6 @@
         document
           .getElementById("drawing")
           .addEventListener("mouseup", function () {
-       
-
             isDrawing = false;
             var fadingPath = path;
 
@@ -115,12 +117,15 @@
                   }
                 );
 
-                fadingPath
-                  .animate(300)
-                  .opacity(0)
-                  .after(function () {
-                    fadingPath.remove();
-                  });
+                d3.select("#drawing").selectAll("path").transition().duration(300).style('opacity', 0).remove();
+
+                // fadingPath
+                //   .animate(300)
+                //   .opacity(0)
+                //   .after(function () {
+                    
+                //     fadingPath.remove();
+                //   });
               }, 500)();
             }
           });
