@@ -1,23 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>ABCD recognition</title>
-
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Handwriting Recognition: Simple Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://docs.opencv.org/4.7.0/opencv.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.1/svg.min.js"></script>
-    <script src="https://unpkg.com/ml5@0.4.3/dist/ml5.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.1/svg.min.js"></script> -->
+    <!-- <script src="https://unpkg.com/ml5@0.4.3/dist/ml5.min.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <style>
+      #wrapper {
+        display: block;
+        width: 50%;
+        top: 20px;
+        z-index: 10;
+        position: absolute !important;
+      }
+      #visuals {
+        margin-top: 30%;
+        text-align: center;
+      }
+      #image {
+        display: none;
+        width: 300px;
+      }
+      #textuals {
+        margin-top: 20px;
+        text-align: center;
+      }
+      #outputText {
+        display: block;
+        font-size: 20px;
+        margin-top: 20px;
+        padding: 10px 0px;
+        color: #000000;
+      }
+      div > canvas {
+        border: 2px solid rgb(0, 175, 0);
+        padding: 3px;
+        margin: 5px;
+        height: 40px;
+      }
+    </style>
+  </head>
+  <body style="margin: 0">
+    <div id="wrapper" style="display: none">
+      <input type="file" onchange="onFileSelected(event)" />
+      <div id="visuals">
+        <!-- <img id="image"> -->
+        <!-- <img src="a.jpeg" id="image" alt="" /> -->
+        <img id="displayedImage" />
+        <div id="result"></div>
+      </div>
+      <div id="textuals">
+        <div id="outputText"></div>
+      </div>
+    </div>
     <div id="png-container" style="display: none"></div>
+
+    <div id="drawing" style="height: 99vh"></div>
+
+    <script src="main.js"></script>
+
     <script>
       window.onload = function () {
         // const classifier = ml5.imageClassifier("DoodleNet", modelReady);
-        const classifier = ml5.imageClassifier(
-          "./model/model.json",
-          modelReady
-        );
+        // const classifier = ml5.imageClassifier(
+        //   "./model/model.json",
+        //   modelReady
+        // );
 
-        function modelReady() {
-          console.log("Model Ready!");
-        }
+        // function modelReady() {
+        //   console.log("Model Ready!");
+        // }
 
         var draw = SVG().addTo("#drawing").size("100%", "100%");
 
@@ -109,16 +167,18 @@
               document.querySelector("#png-container").innerHTML =
                 '<img id="image" src="' + image + '"/>';
 
-              debounce(function () {
-                classifier.classify(
-                  document.getElementById("image"),
-                  5,
-                  (err, results) => {
-                    console.log(results[0].label);
-                  }
-                );
+              d3.selectAll("#result").selectAll("*").remove();
 
-    
+              debounce(function () {
+                // classifier.classify(
+                //   document.getElementById("image"),
+                //   5,
+                //   (err, results) => {
+                //     console.log(results[0].label);
+                //   }
+                // );
+
+                findRect();
 
                 d3.select("#drawing")
                   .selectAll("path")
@@ -139,8 +199,5 @@
           });
       };
     </script>
-  </head>
-  <body style="margin: 0">
-    <div id="drawing" style="height: 100vh"></div>
   </body>
 </html>
